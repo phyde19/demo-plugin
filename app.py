@@ -50,14 +50,14 @@ def text(*, content: str) -> str:
     return json.dumps({"type": "llm", "content": content}) + "\n"
 
 
-def source(
+def web_source(
     *,
     index: int,
     title: str,
     url: str,
     snippet: str | None = None,
 ) -> str:
-    """Citation/source frame."""
+    """Web citation frame."""
     body: dict[str, Any] = {
         "type": "web",
         "index": index,
@@ -66,6 +66,30 @@ def source(
     }
     if snippet is not None:
         body["snippet"] = snippet
+    return json.dumps({"type": "citation", "content": body}) + "\n"
+
+
+def doc_source(
+    *,
+    index: int,
+    title: str,
+    content: str,
+    document_ref: str,
+    relevance_score: float | None = None,
+    preview: str | None = None,
+) -> str:
+    """Document citation frame."""
+    body: dict[str, Any] = {
+        "type": "document",
+        "index": index,
+        "title": title,
+        "content": content,
+        "document_ref": document_ref,
+    }
+    if relevance_score is not None:
+        body["relevance_score"] = relevance_score
+    if preview is not None:
+        body["preview"] = preview
     return json.dumps({"type": "citation", "content": body}) + "\n"
 
 
@@ -115,10 +139,10 @@ async def stream(request: dict[str, Any]):
         return
 
     # --- Stream sources ---
-    yield source(index=1, title="Architecture Guide", url="https://docs.internal/architecture")
-    yield source(index=2, title="API Reference", url="https://docs.internal/api", snippet="See section 4.2")
-    yield source(index=3, title="Onboarding Runbook", url="https://docs.internal/onboarding")
-    yield source(index=4, title="Incident Playbook", url="https://docs.internal/incidents", snippet="Escalation workflow")
+    yield doc_source(index=1, title="Architecture Guide", content="The platform uses event-driven microservices with a central message bus.", document_ref="architecture-guide-v3.pdf", relevance_score=0.95)
+    yield doc_source(index=2, title="Data Model Spec", content="All entities use UUID primary keys with created_at/updated_at timestamps.", document_ref="data-model-spec.docx", preview="Section 2: Entity Design")
+    yield web_source(index=3, title="API Reference", url="https://docs.internal/api", snippet="See section 4.2")
+    yield web_source(index=4, title="Incident Playbook", url="https://docs.internal/incidents", snippet="Escalation workflow")
 
     # --- Uncomment to demo error streaming ---
     # yield error(message="Something went wrong!", code="DEMO_ERROR", retryable=False)
