@@ -1,0 +1,5 @@
+fastapi
+uvicorn
+watchfiles
+pydantic-settings
+openai
